@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Veloose.Model
 {
+    
     public class Properties
     {
         public string name { get; set; }
