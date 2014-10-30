@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Xaml;
 using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Views;
 using Newtonsoft.Json;
 using Veloose.Model;
@@ -16,7 +22,17 @@ namespace Veloose.ViewModel
 {
     public class MainViewModel : ViewModelBase
     {
+        #region Interfaces
+
         private INavigationService _navigationService;
+        public ICommand SearchingCommand { get; set; }
+        public ICommand NavigateToStationCommand { get; set; }
+
+        #endregion
+
+        #region Properties
+
+        #region HelloWorld
 
         private string _helloWorld;
 
@@ -26,14 +42,79 @@ namespace Veloose.ViewModel
             set { Set(() => HelloWorld, ref _helloWorld, value); }
         }
 
-        
+        #endregion
+
+        #region SearchingText
+
+        /// <summary>
+        /// The <see cref="SearchingText" /> property's name.
+        /// </summary>
+        public const string SearchingTextPropertyName = "SearchingText";
+
+        private string _searchingText = "";
+
+        /// <summary>
+        /// Sets and gets the SearchingText property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public string SearchingText
+        {
+            get { return _searchingText; }
+
+            set
+            {
+                if (_searchingText == value)
+                {
+                    return;
+                }
+                _searchingText = value;
+                if(!string.IsNullOrEmpty(_searchingText))
+                    SearchingAction(_searchingText);
+                RaisePropertyChanged(SearchingTextPropertyName);
+            }
+        }
+
+        #endregion
+
+        #region Stations
+
+        /// <summary>
+        /// The <see cref="stations" /> property's name.
+        /// </summary>
+        public const string stationsPropertyName = "stations";
+
+        private ObservableCollection<Feature> _stations = new ObservableCollection<Feature>();
+
+        /// <summary>
+        /// Sets and gets the stations property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public ObservableCollection<Feature> stations
+        {
+            get { return _stations; }
+
+            set
+            {
+                if (_stations == value)
+                {
+                    return;
+                }
+
+                _stations = value;
+                RaisePropertyChanged(stationsPropertyName);
+            }
+        }
 
         /// <summary>
         /// The <see cref="StationContainer" /> property's name.
         /// </summary>
         public const string StationContainerPropertyName = "StationContainer";
 
-        private RootObject _stationContaineRootObject = new RootObject();   
+        private RootObject _stationContaineRootObject = new RootObject();
+
+        public static readonly DependencyProperty NavigateToStationProperty =
+            DependencyProperty.Register("NavigateToStation", typeof (object), typeof (MainViewModel),
+                new PropertyMetadata(default(object)));
 
         /// <summary>
         /// Sets and gets the StationContainer property.
@@ -41,10 +122,7 @@ namespace Veloose.ViewModel
         /// </summary>
         public RootObject StationContainer
         {
-            get
-            {
-                return _stationContaineRootObject;
-            }
+            get { return _stationContaineRootObject; }
 
             set
             {
@@ -59,186 +137,125 @@ namespace Veloose.ViewModel
             }
         }
 
+        #endregion
+
+        #region CurrentStation
+
+        /// <summary>
+        /// The <see cref="CurrentStation" /> property's name.
+        /// </summary>
+        public const string CurrentStationPropertyName = "CurrentStation";
+
+        private Feature _currentStation = new Feature();
+
+        /// <summary>
+        /// Sets and gets the CurrentStation property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public Feature CurrentStation
+        {
+            get { return _currentStation; }
+
+            set
+            {
+                if (_currentStation == value)
+                {
+                    return;
+                }
+
+                _currentStation = value;
+                RaisePropertyChanged(CurrentStationPropertyName);
+            }
+        }
+
+        #endregion
+
+        #region UserPosition
+
+        /// <summary>
+        /// The <see cref="UserPosition" /> property's name.
+        /// </summary>
+        public const string UserPositionPropertyName = "UserPosition";
+
+        private Geoposition _userPosition = new Geoposition();
+
+        /// <summary>
+        /// Sets and gets the UserPosition property.
+        /// Changes to that property's value raise the PropertyChanged event. 
+        /// </summary>
+        public Geoposition UserPosition
+        {
+            get { return _userPosition; }
+
+            set
+            {
+                if (_userPosition == value)
+                {
+                    return;
+                }
+
+                _userPosition = value;
+                RaisePropertyChanged(UserPositionPropertyName);
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        public async void SetMap()
+        {
+            var locator = new Geolocator();
+            locator.DesiredAccuracyInMeters = 50;
+            UserPosition =  await locator.GetGeopositionAsync();
+            
+        }
+
         public async void LoadJson()
         {
             StorageFolder folder = Windows.ApplicationModel.Package.Current.InstalledLocation;
             folder = await folder.GetFolderAsync("Data");
             StorageFile file = await folder.GetFileAsync("Velo_Toulouse.json");
-            string rtfString = await Windows.Storage.FileIO.ReadTextAsync(file);
-
+            string rtfString = await FileIO.ReadTextAsync(file);
             StationContainer = JsonConvert.DeserializeObject<RootObject>(rtfString);
+            stations  = new ObservableCollection<Feature>( StationContainer.features.OrderBy(f => f.properties.num_station).ToList());
         }
 
-        public void LoadLocal()
-        {
-            StationContainer = new RootObject
-            {
-                features =
-                    new List<Feature>
-                        {
-                            new Feature {properties = new Properties2 {num_station = 1, nom = "Duclos"}},
-                            new Feature {properties = new Properties2 {num_station = 2, nom = "Herbette"}}
-                        }
-            };
-        }
+//        private StorageFolder GetFolder(string name)
+//        {
+//            StorageFolder folder = Windows.ApplicationModel.Package.Current.InstalledLocation;
+//            return folder.GetFolderAsync(name).GetResults();
+//        }
+//
+//        private StorageFile GetFile(StorageFolder folder, string fileName)
+//        {
+//            return folder.GetFileAsync(fileName).GetResults();
+//        }
 
-        private async Task UnZipFileAsync(StorageFile zipFile, StorageFolder unzipFolder)
-        {
-                await UnZipFileAync(zipFile, unzipFolder);
-        } 
         
-        #region private helper functions
-
-        public static IAsyncAction UnZipFileAync(StorageFile zipFile, StorageFolder destinationFolder)
-        {
-            return UnZipFileHelper(zipFile, destinationFolder).AsAsyncAction();
-        } 
-        private static async Task UnZipFileHelper(StorageFile zipFile, StorageFolder destinationFolder)
-        {
-            if (zipFile == null || destinationFolder == null ||
-                !Path.GetExtension(zipFile.DisplayName).Equals(".zip", StringComparison.CurrentCultureIgnoreCase)
-                )
-            {
-                throw new ArgumentException("Invalid argument...");
-            }
-            Stream zipMemoryStream = await zipFile.OpenStreamForReadAsync();
-            // Create zip archive to access compressed files in memory stream 
-            using (ZipArchive zipArchive = new ZipArchive(zipMemoryStream, ZipArchiveMode.Read))
-            {
-                // Unzip compressed file iteratively. 
-                foreach (ZipArchiveEntry entry in zipArchive.Entries)
-                {
-                    await UnzipZipArchiveEntryAsync(entry, entry.FullName, destinationFolder);
-                }
-            }
-        }
-        /// <summary> 
-        /// It checks if the specified path contains directory. 
-        /// </summary> 
-        /// <param name="entryPath">The specified path</param> 
-        /// <returns></returns> 
-        private static bool IfPathContainDirectory(string entryPath)
-        {
-            if (string.IsNullOrEmpty(entryPath))
-            {
-                return false;
-            }
-            return entryPath.Contains("/");
-        }
-        /// <summary> 
-        /// It checks if the specified folder exists. 
-        /// </summary> 
-        /// <param name="storageFolder">The container folder</param> 
-        /// <param name="subFolderName">The sub folder name</param> 
-        /// <returns></returns> 
-        private static async Task<bool> IfFolderExistsAsync(StorageFolder storageFolder, string subFolderName)
-        {
-            try
-            {
-                await storageFolder.GetFolderAsync(subFolderName);
-            }
-            catch (FileNotFoundException)
-            {
-                return false;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            return true;
-        }
-        /// <summary> 
-        /// Unzips ZipArchiveEntry asynchronously. 
-        /// </summary> 
-        /// <param name="entry">The entry which needs to be unzipped</param> 
-        /// <param name="filePath">The entry's full name</param> 
-        /// <param name="unzipFolder">The unzip folder</param> 
-        /// <returns></returns> 
-        private static async Task UnzipZipArchiveEntryAsync(ZipArchiveEntry entry, string filePath, StorageFolder unzipFolder)
-        {
-            if (IfPathContainDirectory(filePath))
-            {
-                // Create sub folder 
-                string subFolderName = Path.GetDirectoryName(filePath);
-                bool isSubFolderExist = await IfFolderExistsAsync(unzipFolder, subFolderName);
-                StorageFolder subFolder;
-                if (!isSubFolderExist)
-                {
-                    // Create the sub folder. 
-                    subFolder =
-                        await unzipFolder.CreateFolderAsync(subFolderName, CreationCollisionOption.ReplaceExisting);
-                }
-                else
-                {
-                    // Just get the folder. 
-                    subFolder =
-                        await unzipFolder.GetFolderAsync(subFolderName);
-                }
-                // All sub folders have been created. Just pass the file name to the Unzip function. 
-                string newFilePath = Path.GetFileName(filePath);
-                if (!string.IsNullOrEmpty(newFilePath))
-                {
-                    // Unzip file iteratively. 
-                    await UnzipZipArchiveEntryAsync(entry, newFilePath, subFolder);
-                }
-            }
-            else
-            {
-                // Read uncompressed contents 
-                using (Stream entryStream = entry.Open())
-                {
-                    byte[] buffer = new byte[entry.Length];
-                    entryStream.Read(buffer, 0, buffer.Length);
-                    // Create a file to store the contents 
-                    StorageFile uncompressedFile = await unzipFolder.CreateFileAsync
-                    (entry.Name, CreationCollisionOption.ReplaceExisting);
-                    // Store the contents 
-                    using (IRandomAccessStream uncompressedFileStream =
-                    await uncompressedFile.OpenAsync(FileAccessMode.ReadWrite))
-                    {
-                        using (Stream outstream = uncompressedFileStream.AsStreamForWrite())
-                        {
-                            outstream.Write(buffer, 0, buffer.Length);
-                            outstream.Flush();
-                        }
-                    }
-                }
-            }
-        }
-        #endregion
-
-        private StorageFolder GetFolder(string name)
-        {
-            StorageFolder folder = Windows.ApplicationModel.Package.Current.InstalledLocation;
-            return folder.GetFolderAsync(name).GetResults();
-        }
-
-        private StorageFile GetFile(StorageFolder folder, string fileName)
-        {
-            return folder.GetFileAsync(fileName).GetResults();
-        }
-
-        private async void UnZip()
-        {
-            var fileName ="12546-velo-toulouse.zip";
-            var folder = GetFolder("Data");
-           
-            StorageFile localFile = await folder.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName); 
-            var unzipFolder =
-                await folder.CreateFolderAsync(Path.GetFileNameWithoutExtension(fileName),
-                CreationCollisionOption.GenerateUniqueName);
-            await UnZipFileAsync(localFile, unzipFolder);
-        }
-
         public MainViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-//            UnZip();
+            NavigateToStationCommand = new RelayCommand(() => _navigationService.NavigateTo(Constants.DetailsPageName));
+            SearchingCommand = new RelayCommand<string>(SearchingAction);
+//            StationContainer = new RootObject{ features = new List<Feature>{
+            CurrentStation = new Feature
+            {
+                properties = new Properties2 { nom = "Rue Herbette kjljlj lkjlkjlkj kj", commune = "toulouse", num_station = 1, nb_bornettes = 18, street = "rue du test", No = "3" }} ;
+    
+//            }    }         };
             LoadJson();
-
+//            _currentStation = IsInDesignMode ? stations.FirstOrDefault() : null;
             HelloWorld = IsInDesignMode
                 ? "Runs in design mode"
                 : "Runs in runtime mode";
+        }
+
+        private void SearchingAction(string obj)
+        {
+            stations = new ObservableCollection<Feature>(StationContainer.features.Where(n =>
+                            n.properties.nom.ToLower().Contains(SearchingText.ToLower()) || n.properties.street.ToLower().Contains(SearchingText.ToLower()) ||
+                            n.properties.num_station.ToString().Contains(SearchingText)));
         }
     }
 }

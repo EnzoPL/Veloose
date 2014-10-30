@@ -133,5 +133,17 @@ namespace Veloose
             // TODO: enregistrez l'état de l'application et arrêtez toute activité en arrière-plan
             deferral.Complete();
         }
+
+#if WINDOWS_PHONE_APP
+        /// <summary>
+        /// Invoqué lorsque l'application est activée en tant que cible d'une opération de partage.
+        /// </summary>
+        /// <param name="e">Détails relatifs à la requête d'activation.</param>
+        protected override void OnShareTargetActivated(Windows.ApplicationModel.Activation.ShareTargetActivatedEventArgs e)
+        {
+            var shareTargetPage = new Veloose.Details();
+            shareTargetPage.Activate(e);
+        }
+#endif
     }
 }

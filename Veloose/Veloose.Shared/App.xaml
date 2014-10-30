@@ -10,6 +10,10 @@
     <Application.Resources>
         <vm:ViewModelLocator x:Key="Locator"
                              d:IsDataSource="True" />
+        <ResourceDictionary x:Key="StyleDictionary">
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Style/DefaultStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
-
 </Application>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace Veloose.Model
@@ -53,6 +54,6 @@ namespace Veloose.Model
         public string name { get; set; }
         public string type { get; set; }
         public Crs crs { get; set; }
-        public List<Feature> features { get; set; }
+        public ObservableCollection<Feature> features { get; set; }
     }
 }

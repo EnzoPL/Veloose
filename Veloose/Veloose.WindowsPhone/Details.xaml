@@ -1,0 +1,45 @@
+﻿<Page
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Veloose"
+    xmlns:common="using:Veloose.Common"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps"
+    x:Class="Veloose.Details"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <Style x:Key="BlocTextDetails" TargetType="StackPanel"/>
+        <Style x:Key="LineDetails" TargetType="StackPanel"/>
+    </Page.Resources>
+    <Page.DataContext>
+        <Binding Path="Main.CurrentStation" Source="{StaticResource Locator}"/>
+    </Page.DataContext>
+    <StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Style="{StaticResource LineDetails}">
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.num_station}" Margin="10,0"/>
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.nom}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Style="{StaticResource LineDetails}">
+            <TextBlock TextWrapping="Wrap" Margin="10,0" Text="Code INSEE :"/>
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.code_insee}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Style="{StaticResource LineDetails}">
+            <TextBlock TextWrapping="Wrap" Margin="10,0" Tag="En service :"/>
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.En_service}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Style="{StaticResource LineDetails}">
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.num_station}" Margin="10,0"/>
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.nom}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Style="{StaticResource LineDetails}">
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.num_station}" Margin="10,0"/>
+            <TextBlock TextWrapping="Wrap" Text="{Binding properties.nom}"/>
+        </StackPanel>
+        <Maps:MapControl Margin="0,0,68,0" Height="100" Name="MapDetail" Location="{Binding geometry.coordinates}"/>
+
+    </StackPanel>
+
+</Page>

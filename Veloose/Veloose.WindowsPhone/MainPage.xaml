@@ -6,40 +6,65 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" DataContext="{Binding Main, Mode=OneWay, Source={StaticResource Locator}}">
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    DataContext="{Binding Main, Mode=TwoWay, Source={StaticResource Locator}}">
+<Page.Resources>
+        <DataTemplate x:Key="StationDataTemplate">
+            <Grid d:DesignWidth="256.5" d:DesignHeight="70.333" VerticalAlignment="Center" Width="360">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock TextWrapping="Wrap" Text="{Binding properties.nom}" FontSize="16" Grid.Row="0" Grid.Column="1" LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1">
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap"   VerticalAlignment="Center" Text="{Binding properties.No}" Grid.Row="1" Padding="0" Margin="0"/>
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap"   VerticalAlignment="Center" Text="{Binding properties.street}" Grid.Row="1" Padding="0" Margin="5,0,0,0"/>
+                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap"   VerticalAlignment="Center" Text="{Binding properties.commune}" Grid.Row="1" Padding="0" Margin="5,0,0,0" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal" Grid.RowSpan="2" Margin="0">
+                    <TextBlock TextWrapping="Wrap" Text="{Binding properties.nb_bornettes}" Padding="0" TextTrimming="CharacterEllipsis" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <Image Source="Assets/unlock.png" Height="15" HorizontalAlignment="Center" Margin="0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock TextWrapping="Wrap" Text="{Binding properties.num_station}" FontSize="20" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
     <Pivot Title="Veloose">
         <PivotItem Header="Stations">
-            <ListView x:Name="StationsListView" ItemsSource="{Binding StationContainer.features}">
-                <ListView.Resources>
-                    <DataTemplate x:Key="StationDataTemplate">
-                        <Grid d:DesignWidth="256.5" d:DesignHeight="70.333" Width="385">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="4*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox HorizontalAlignment="Left" Margin="5,10" TextWrapping="Wrap" Text="{Binding properties.nom}" VerticalAlignment="Top" Grid.Column="1"/>
-                            <TextBox HorizontalAlignment="Center" Margin="0,10" TextWrapping="Wrap" Text="{Binding properties.num_station}" VerticalAlignment="Top"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.Resources>
-                <ListView.ItemTemplate>
-                    <StaticResource ResourceKey="StationDataTemplate"/>
-                </ListView.ItemTemplate>
-                <!--                <ListView.ItemTemplate>-->
-                <!--                    <DataTemplate>-->
-                <!--                        <Grid Height="100">-->
-                <!--                            <Grid.ColumnDefinitions>-->
-                <!--                                <ColumnDefinition Width="75"/>-->
-                <!--                                <ColumnDefinition Width="311*"/>-->
-                <!--                                <ColumnDefinition Width="70*"/>-->
-                <!--                            </Grid.ColumnDefinitions>-->
-                <!--                            <TextBlock Height="400" Width="200" Grid.Column="1" Text="Test"/>-->
-                <!--                        </Grid>-->
-                <!--                    </DataTemplate>-->
-                <!--                </ListView.ItemTemplate>-->
-                <!--                <ListViewItem></ListViewItem>-->
-            </ListView>
+            <Grid>
+                <Grid.Resources>
+                    
+                </Grid.Resources>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBox x:Name="SearchBar" Text="{Binding SearchingText,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                    <interactivity:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="TextChanged">
+                            <core:InvokeCommandAction Command="{Binding SearchingCommand}" CommandParameter="{Binding Text, ElementName=SearchBar}" />
+                        </core:EventTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </TextBox>
+                <ListView x:Name="StationsListView" ItemsSource="{Binding stations}" Grid.Row="1" SelectedItem="{Binding CurrentStation}">
+                    <ListView.ItemTemplate>
+                        <StaticResource ResourceKey="StationDataTemplate"/>
+                    </ListView.ItemTemplate>
+                    <interactivity:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Tapped">
+                            <core:InvokeCommandAction Command="{Binding NavigateToStationCommand}" />
+                        </core:EventTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </ListView>
+            </Grid>
         </PivotItem>
     </Pivot>
 </Page>
