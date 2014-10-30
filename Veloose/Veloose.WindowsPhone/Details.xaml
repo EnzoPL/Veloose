@@ -6,18 +6,19 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps"
+    xmlns:converters="using:Veloose.Converters"
     x:Class="Veloose.Details"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    DataContext="{Binding Main, Mode=TwoWay, Source={StaticResource Locator}}">
 
     <Page.Resources>
         <Style x:Key="BlocTextDetails" TargetType="StackPanel"/>
         <Style x:Key="LineDetails" TargetType="StackPanel"/>
+        <converters:StationToGeopositionConverter x:Key="StationToGeopositionConverter" />
     </Page.Resources>
-    <Page.DataContext>
-        <Binding Path="Main.CurrentStation" Source="{StaticResource Locator}"/>
-    </Page.DataContext>
-    <StackPanel>
+    <StackPanel >
+        <StackPanel DataContext="{Binding Main.CurrentStation, Mode=TwoWay, Source={StaticResource Locator}}">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Style="{StaticResource LineDetails}">
             <TextBlock TextWrapping="Wrap" Text="{Binding properties.num_station}" Margin="10,0"/>
             <TextBlock TextWrapping="Wrap" Text="{Binding properties.nom}"/>
@@ -38,8 +39,27 @@
             <TextBlock TextWrapping="Wrap" Text="{Binding properties.num_station}" Margin="10,0"/>
             <TextBlock TextWrapping="Wrap" Text="{Binding properties.nom}"/>
         </StackPanel>
-        <Maps:MapControl Margin="0,0,68,0" Height="100" Name="MapDetail" Location="{Binding geometry.coordinates}"/>
-
+<!--        <Maps:MapControl Height="281" x:Name="MapDetail" Maps:MapControl.Location="{Binding geometry.coordinates}"/>-->
+        
+        
+<!--        <Maps:MapItemsControl.ItemTemplate>-->
+<!--            <DataTemplate>-->
+<!--                <Image Source="Assets/Logo.png.png" Height="25"-->
+<!--               Maps:MapControl.Location="{Binding Geopoint}" -->
+<!--               Maps:MapControl.NormalizedAnchorPoint=".5,1" />-->
+<!--            </DataTemplate>-->
+<!--        </Maps:MapItemsControl.ItemTemplate>-->
     </StackPanel>
+        <Maps:MapControl Location="{Binding CurrentStation, Converter={StaticResource StationToGeopositionConverter}}"  x:Name="Map" MapServiceToken="abcdef-abcdefghijklmno" Height="568" Center="{Binding CurrentStation, Converter={StaticResource StationToGeopositionConverter}}" ZoomLevel="16">
+            <Maps:MapItemsControl>
+                <Maps:MapItemsControl.ItemTemplate>
+                        <DataTemplate>
+                        <Image Source="Assets/bike.png" Height="25" Maps:MapControl.Location="{Binding CurrentStation, Converter={StaticResource StationToGeopositionConverter}}" />
+                        </DataTemplate>
+                </Maps:MapItemsControl.ItemTemplate>
+            </Maps:MapItemsControl>
+        </Maps:MapControl>
+    </StackPanel>
+    
 
 </Page>

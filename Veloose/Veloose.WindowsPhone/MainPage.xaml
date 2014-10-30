@@ -54,7 +54,7 @@
                         </core:EventTriggerBehavior>
                     </interactivity:Interaction.Behaviors>
                 </TextBox>
-                <ListView x:Name="StationsListView" ItemsSource="{Binding stations}" Grid.Row="1" SelectedItem="{Binding CurrentStation}">
+                <ListView x:Name="StationsListView" ItemsSource="{Binding stations}" Grid.Row="1" SelectedItem="{Binding CurrentStation,Mode=TwoWay,UpdateSourceTrigger=Default}">
                     <ListView.ItemTemplate>
                         <StaticResource ResourceKey="StationDataTemplate"/>
                     </ListView.ItemTemplate>

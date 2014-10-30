@@ -177,7 +177,7 @@ namespace Veloose.ViewModel
         /// </summary>
         public const string UserPositionPropertyName = "UserPosition";
 
-        private Geoposition _userPosition = new Geoposition();
+        private Geoposition _userPosition;
 
         /// <summary>
         /// Sets and gets the UserPosition property.
@@ -208,7 +208,6 @@ namespace Veloose.ViewModel
             var locator = new Geolocator();
             locator.DesiredAccuracyInMeters = 50;
             UserPosition =  await locator.GetGeopositionAsync();
-            
         }
 
         public async void LoadJson()
@@ -232,19 +231,22 @@ namespace Veloose.ViewModel
 //            return folder.GetFileAsync(fileName).GetResults();
 //        }
 
-        
+
         public MainViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            NavigateToStationCommand = new RelayCommand(() => _navigationService.NavigateTo(Constants.DetailsPageName));
+            NavigateToStationCommand =
+                new RelayCommand(() => { _navigationService.NavigateTo(Constants.DetailsPageName);  });
+        
             SearchingCommand = new RelayCommand<string>(SearchingAction);
 //            StationContainer = new RootObject{ features = new List<Feature>{
-            CurrentStation = new Feature
-            {
-                properties = new Properties2 { nom = "Rue Herbette kjljlj lkjlkjlkj kj", commune = "toulouse", num_station = 1, nb_bornettes = 18, street = "rue du test", No = "3" }} ;
-    
+//            CurrentStation = new Feature
+//            {
+//                properties = new Properties2 { nom = "Rue Herbette kjljlj lkjlkjlkj kj", commune = "toulouse", num_station = 1, nb_bornettes = 18, street = "rue du test", No = "3" }} ;
+//    
 //            }    }         };
             LoadJson();
+            SetMap();
 //            _currentStation = IsInDesignMode ? stations.FirstOrDefault() : null;
             HelloWorld = IsInDesignMode
                 ? "Runs in design mode"
